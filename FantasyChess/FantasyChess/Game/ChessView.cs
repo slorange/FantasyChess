@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 
 namespace FantasyChess.Game
 {
@@ -21,13 +23,13 @@ namespace FantasyChess.Game
     int squares;
     int width, height;
     int minx, miny, size, squareSize; //board left,top,size
-    boolean settings = false;
-    List<Button> buttons = new LinkedList<Button>();
+    bool settings = false;
+    List<Button> buttons = new List<Button>();
 
     public class Button{
         int x, y, w, h;
-        String event;
-        public Button(int x, int y, int w, int h, String event){
+        string event;
+        public Button(int x, int y, int w, int h, string event){
             this.x = x;
             this.y = y;
             this.w = w;
@@ -78,13 +80,13 @@ namespace FantasyChess.Game
 
         Drawable d = getResources().getDrawable(R.drawable.gear);
         if(d == null){
-            System.out.println("Resource not found: gear");
+            Console.WriteLine("Resource not found: gear");
         }
         else {
             int x = 10;
             int y = 10;
             d.setBounds(x, y, x + 150, y + 150);
-            buttons.add(new Button(x, y, 150, 150, "gear"));
+            buttons.Add(new Button(x, y, 150, 150, "gear"));
             d.draw(canvas);
         }
 
@@ -109,7 +111,7 @@ namespace FantasyChess.Game
         }
     }
 
-    private void drawButton(Canvas canvas, int x, int y, String text, int s){
+    private void drawButton(Canvas canvas, int x, int y, string text, int s){
         paint.setColor(Color.WHITE);
         paint.setStrokeWidth(STROKE_WIDTH);
         paint.setStyle(Paint.Style.STROKE);
@@ -122,12 +124,12 @@ namespace FantasyChess.Game
         canvas.drawText(text, x - textBounds.width() - b, y + textBounds.height() + b, paint);
     }
 
-    private void drawButton2(Canvas canvas, int x, int y, int w, int h, String text) {
+    private void drawButton2(Canvas canvas, int x, int y, int w, int h, string text) {
         drawButton2(canvas, x, y, w, h, text, Color.WHITE);
     }
 
-    private void drawButton2(Canvas canvas, int x, int y, int w, int h, String text, int c){
-        buttons.add(new Button(x, y, w, h, text));
+    private void drawButton2(Canvas canvas, int x, int y, int w, int h, string text, int c){
+        buttons.Add(new Button(x, y, w, h, text));
 
         paint.setColor(c);
         paint.setStrokeWidth(STROKE_WIDTH);
@@ -142,7 +144,7 @@ namespace FantasyChess.Game
     }
 
     //binary search for the right size of text to fit in bounds
-    private Rect findRightTextSize(Rect bounds, int l, int u, String text){
+    private Rect findRightTextSize(Rect bounds, int l, int u, string text){
         int n = (l + u)/2;
         paint.setTextSize(n);
         Rect textBounds = new Rect();
@@ -173,7 +175,7 @@ namespace FantasyChess.Game
         }
 
         for (PlayerMove m : board.valid) {
-            Point p = m.moves.getFirst().to;
+            Point p = m.moves.First().to;
             int color = VALID_COLOR;
             if(m.test != -1) color = TEST_COLOR[m.test];
             drawHighlightedSquare(canvas, color, p);
@@ -236,7 +238,7 @@ namespace FantasyChess.Game
             d.draw(canvas);
         }
         catch(Resources.NotFoundException e) {
-            System.out.println("Resource not found: " + piece);
+            Console.WriteLine("Resource not found: " + piece);
         }
     }
 
@@ -244,7 +246,7 @@ namespace FantasyChess.Game
         drawSquare(canvas, color, p, true, squareSize);
     }
 
-    public void drawSquare(Canvas canvas, int color, Point p, boolean border, int squareSize){
+    public void drawSquare(Canvas canvas, int color, Point p, bool border, int squareSize){
         int x1 = p.x;
         int y1 = p.y;
 
@@ -270,7 +272,7 @@ namespace FantasyChess.Game
 
     long lastClickTime = System.currentTimeMillis();
     @Override
-    public boolean onTouch(View v, MotionEvent event) {
+    public bool onTouch(View v, MotionEvent event) {
         long time = System.currentTimeMillis();
         if(System.currentTimeMillis() - lastClickTime < 150) return true;
         lastClickTime = time;
@@ -293,19 +295,19 @@ namespace FantasyChess.Game
         return true;
     }
 
-    private void HandleClick(String event){
-        if(event.equals("gear")){
+    private void HandleClick(string event){
+        if(event.Equals("gear")){
             Settings();
         }
-        else if(event.equals("Singleplayer")){
+        else if(event.Equals("Singleplayer")){
             SetMode(true);
             HideSettings();
         }
-        else if(event.equals("Multiplayer")){
+        else if(event.Equals("Multiplayer")){
             SetMode(false);
             HideSettings();
         }
-        else if(event.equals("Checkers") || event.equals("Chess") || event.equals("Fantasy Chess") || event.equals("Test")){
+        else if(event.Equals("Checkers") || event.Equals("Chess") || event.Equals("Fantasy Chess") || event.Equals("Test")){
             SetMode(event);
             HideSettings();
         }
@@ -316,13 +318,13 @@ namespace FantasyChess.Game
         activity.refreshUI();
     }
 
-    private void SetMode(boolean AI){
+    private void SetMode(bool AI){
         if(board.AIOn == AI) return;
         board = Board.StartNewGame(AI);
     }
 
-    private void SetMode(String Mode){
-        if(board.mode.equals(Mode)) return;
+    private void SetMode(string Mode){
+        if(board.mode.Equals(Mode)) return;
         board = Board.StartNewGame(Mode);
     }
 

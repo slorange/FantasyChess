@@ -2,8 +2,8 @@
 namespace FantasyChess.Game
 {
     public class Point {
-        int x = 0;
-        int y = 0;
+        public int x = 0;
+        public int y = 0;
 
         public Point() { }
 
@@ -53,7 +53,7 @@ namespace FantasyChess.Game
             return new Point(p1.x + p2.x, p1.y + p2.y);
         }
 
-        public override bool Equals(object o) {
+        public override bool Equals(object o) { 
             if (!(o is Point)) return false;
             Point p = (Point)o;
             return x == p.x && y == p.y;

@@ -1,11 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace FantasyChess.Game
 {
     public class Board {
 
         public int SIZE = 8;
-        public boolean AIOn = true;
-        public String mode = "Fantasy Chess";
+        public bool AIOn = true;
+        public string mode = "Fantasy Chess";
 
         private static ChessView ui;
         private static MainActivity activity;
@@ -13,22 +16,22 @@ namespace FantasyChess.Game
         //test board is used by AI to try moves
         //some code isn't executed by test board to speed up AI
         Piece[][] board;
-        LinkedList<Piece> p1captured = new LinkedList<>();
-        LinkedList<Piece> p2captured = new LinkedList<>();
-        LinkedList<PlayerMove> valid = new LinkedList<>();
+        List<Piece> p1captured = new List<Piece>();
+        List<Piece> p2captured = new List<Piece>();
+        List<PlayerMove> valid = new List<PlayerMove>();
         Piece selectedPiece;
-        Piece lastMoved;
-        Piece lastCopyableMove;
-        Point ghostLocation = null;
-        boolean test = true;
+        public Piece lastMoved;
+        public Piece lastCopyableMove;
+        public Point ghostLocation = null;
+        bool test = true;
         char turn;
         int AILEVEL = 2;
 
-        LinkedList<Dependent>[][] dependents;
-        class Dependent {
-            Piece dep;
-            int c;
-            Dependent(Piece d, int c) {
+        List<Dependent>[][] dependents;
+        public class Dependent {
+            public Piece dep;
+            public int c;
+            public Dependent(Piece d, int c) {
                 dep = d;
                 this.c = c;
             }
@@ -37,26 +40,29 @@ namespace FantasyChess.Game
         public void setSize(int s) {
             SIZE = s;
             if (ui != null) ui.changeBoardSize(s);
-            board = new Piece[s][s];
-            dependents = new LinkedList[s][s];
-            for (int x = 0; x < s; x++) {
+            board = new Piece[s][];
+            dependents = new List<Dependent>[s][];
+            for (int x = 0; x < s; x++)
+            {
+                board[x] = new Piece[s];
+                dependents[x] = new List<Dependent>[s];
                 for (int y = 0; y < s; y++) {
-                    dependents[x][y] = new LinkedList<>();
+                    dependents[x][y] = new List<Dependent>();
                 }
             }
         }
 
-        public static Board StartNewGame(boolean AI) {
+        public static Board StartNewGame(bool AI) {
             mainInstance = new Board(AI, mainInstance.mode);
             return mainInstance;
         }
 
-        public static Board StartNewGame(String mode) {
+        public static Board StartNewGame(string mode) {
             mainInstance = new Board(mainInstance.AIOn, mode);
             return mainInstance;
         }
 
-        public static Board StartNewGame(boolean AI, String mode) {
+        public static Board StartNewGame(bool AI, string mode) {
             mainInstance = new Board(AI, mode);
             return mainInstance;
         }
@@ -71,8 +77,7 @@ namespace FantasyChess.Game
 
         private Board() { }
 
-        private Board(boolean AI, String mode) {
-            this();
+        private Board(bool AI, string mode) : this() { 
             this.mode = mode;
             AIOn = AI;
             test = false;
@@ -81,25 +86,25 @@ namespace FantasyChess.Game
         }
 
         private void StartGameMode() {
-            if (mode.equals("Chess")) {
-                this.newChessGame();
+            if (mode.Equals("Chess")) {
+                newChessGame();
             }
-            else if (mode.equals("Checkers")) {
-                this.newCheckersGame();
+            else if (mode.Equals("Checkers")) {
+                newCheckersGame();
             }
-            else if (mode.equals("Test")) {
-                this.testGame();
+            else if (mode.Equals("Test")) {
+                testGame();
             }
             else {
-                this.newGame();
+                newGame();
             }
         }
 
         public void Touch(int x, int y) {
             if (y < 0) {
                 int n = capturedPositionToInt('B', x, y);
-                if (n < p2captured.size()) {
-                    selectedPiece = p2captured.get(n);
+                if (n < p2captured.Count()) {
+                    selectedPiece = p2captured[n];
                     selectedPiece.x = x;
                     selectedPiece.y = y;
                     drawBoard();
@@ -108,8 +113,8 @@ namespace FantasyChess.Game
             }
             if (y >= SIZE) {
                 int n = capturedPositionToInt('W', x, y);
-                if (n < p1captured.size()) {
-                    selectedPiece = p1captured.get(n);
+                if (n < p1captured.Count) {
+                    selectedPiece = p1captured[n];
                     selectedPiece.x = x;
                     selectedPiece.y = y;
                     drawBoard();
@@ -120,7 +125,7 @@ namespace FantasyChess.Game
             selectedPiece = null;
             if (AIOn && turn == 'B') return;
             Point p = new Point(x, y);
-            //System.out.println(p + " " + valid);
+            //Console.Writeln(p + " " + valid);
             if (onBoard(x, y) != 0) return;
             Piece piece = board[x][y];
             if (piece != null && piece.color == turn) { //first click
@@ -129,10 +134,10 @@ namespace FantasyChess.Game
                 drawBoard();
             }
             else { //second click
-                PlayerMove m = PlayerMove.getFirstMove(valid, p);
+                PlayerMove m = PlayerMove.FirstMove(valid, p);
                 if (m == null) return;
-                Boolean b = Move(m);
-                valid = new LinkedList<>();
+                bool b = Move(m);
+                valid = new List<PlayerMove>();
                 nextTurn();
                 drawBoard();
                 //if(b)
@@ -160,9 +165,9 @@ namespace FantasyChess.Game
             return new Point(n % SIZE, -1 - n / SIZE);
         }
 
-        public LinkedList<PlayerMove> valid() {
-            return valid;
-        }
+        //public List<PlayerMove> valid() {
+        //    return valid;
+        //}
 
         public Piece getPiece(Point p) {
             return getPiece(p.x, p.y);
@@ -172,21 +177,21 @@ namespace FantasyChess.Game
             return board[x][y];
         }
 
-        public boolean Move(PlayerMove move) {
-            LinkedList<PieceMove> moves = move.moves;
-            LinkedList<Piece> captures = move.captures;
+        public bool Move(PlayerMove move) {
+            List<PieceMove> moves = move.moves;
+            List<Piece> captures = move.captures;
             ghostLocation = move.ghostLocation;
-            for (Piece capture : captures) {
+            foreach (Piece capture in captures) {
                 SetBoardPiece(capture.x, capture.y, null);
                 if (capture.color == 'W') {
-                    p2captured.add(capture);
+                    p2captured.Add(capture);
                 }
                 if (capture.color == 'B') {
-                    p1captured.add(capture);
+                    p1captured.Add(capture);
                 }
                 //board[capture.x][capture.y] = null;
             }
-            for (PieceMove m : moves) {
+            foreach (PieceMove m in moves) {
                 Piece p = board[m.from.x][m.from.y];
                 SetBoardPiece(m.from.x, m.from.y, null);
                 //board[m.from.x][m.from.y] = null;
@@ -194,9 +199,9 @@ namespace FantasyChess.Game
                 //board[m.to.x][m.to.y] = p;
                 p.move(m.to);
             }
-            Point firstMove = moves.getFirst().to;
+            Point firstMove = moves.First().to;
             lastMoved = board[firstMove.x][firstMove.y];
-            if (!lastMoved.name.equals("J")) {
+            if (!lastMoved.name.Equals("J")) {
                 lastCopyableMove = lastMoved;
             }
             return true;
@@ -204,14 +209,14 @@ namespace FantasyChess.Game
 
         public void SetBoardPiece(int x, int y, Piece p) {
             board[x][y] = p;
-            for (Dependent d : dependents[x][y]) {
+            foreach (Dependent d in dependents[x][y]) {
                 d.dep.invalidate(d.c);
             }
         }
 
-        public void addDep(Piece piece, int c, LinkedList<Point> l) {
-            for (Point p : l) {
-                dependents[p.x][p.y].add(new Dependent(piece, c));
+        public void AddDep(Piece piece, int c, List<Point> l) {
+            foreach (Point p in l) {
+                dependents[p.x][p.y].Add(new Dependent(piece, c));
             }
         }
 
@@ -222,7 +227,7 @@ namespace FantasyChess.Game
                         board[x][y].getValidMoves(false);
         }
 
-        /*public boolean Move(Piece piece, Point loc){
+        /*public bool Move(Piece piece, Point loc){
             Board backup = null;
             if (!test) //implementing undo will get rid of this hack
                 backup = [[copy.copy(self.board[i][j]) for j in range(8)] for i in range(8)]
@@ -241,8 +246,8 @@ namespace FantasyChess.Game
             return true;
         }*/
 
-        public boolean inCheck(char color) {
-            for (Piece p : getPieces(color)) {
+        public bool inCheck(char color) {
+            foreach (Piece p in getPieces(color)) {
                 if (p.royalty && p.inCheck()) {
                     return true;
                 }
@@ -250,20 +255,20 @@ namespace FantasyChess.Game
             return false;
         }
 
-        public boolean canMove(char color) {
-            for (Piece p : getPieces(color)) {
-                if (p.getValidMoves(true).size() > 0) {
+        public bool canMove(char color) {
+            foreach (Piece p in getPieces(color)) {
+                if (p.getValidMoves(true).Count() > 0) {
                     return true;
                 }
             }
             return false;
         }
 
-        public boolean checkMate(char color) {
+        public bool checkMate(char color) {
             return !canMove(color) && inCheck(color);
         }
 
-        public boolean staleMate(char color) {
+        public bool staleMate(char color) {
             return !canMove(color) && !inCheck(color);
         }
 
@@ -401,14 +406,14 @@ namespace FantasyChess.Game
             drawBoard();
         }
 
-        public LinkedList<Piece> getPieces(char color) {
+        public List<Piece> getPieces(char color) {
             //TODO make player class and keep list of pieces
-            LinkedList<Piece> pieces = new LinkedList<Piece>();
+            List<Piece> pieces = new List<Piece>();
             for (int x = 0; x < SIZE; x++)
                 for (int y = 0; y < SIZE; y++)
                     if (board[x][y] != null)
                         if (board[x][y].color == color)
-                            pieces.add(board[x][y]);
+                            pieces.Add(board[x][y]);
             return pieces;
         }
 
@@ -425,7 +430,7 @@ namespace FantasyChess.Game
             else {
                 turn = 'W';
             }
-            if (getPieces(turn).size() == 0) {
+            if (getPieces(turn).Count() == 0) {
                 nextTurn();
             }
         }
@@ -433,6 +438,7 @@ namespace FantasyChess.Game
         public void ready() {
             if (!AIOn || turn != 'B') return;
             getDependencies();
+
             PlayerMove AIMove = AI.makeMove(this, 'B', AILEVEL);
             if (AIMove != null)//shouldnt happen
                 Move(AIMove);
@@ -487,11 +493,11 @@ namespace FantasyChess.Game
             for (int i = 0; i < SIZE; i++) {
                 for (int j = 0; j < SIZE; j++) {
                     if (board[j][i] == null)
-                        System.out.print("-- ");
+                        Console.Write("-- ");
                 else
-                        System.out.print(board[j][i] + " ");
+                        Console.Write(board[j][i] + " ");
                 }
-                System.out.println();
+                Console.WriteLine();
             }
         }
 

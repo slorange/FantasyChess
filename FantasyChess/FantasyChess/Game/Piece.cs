@@ -1,58 +1,59 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace FantasyChess.Game
 {
     public class Piece {
-        int x, y;
-        char color;
-        String name;
-        int image;
-        Board board;
-        boolean moved;
-        int value;
-        LinkedList<Move> moveList;
-        Promotion promotion;
-        boolean royalty;
-        boolean stunner;
+        public int x, y;
+        public char color;
+        public string name;
+        public int image;
+        public Board board;
+        public bool moved;
+        public int value;
+        public List<Move> moveList;
+        public Promotion promotion;
+        public bool royalty;
+        public bool stunner;
 
         //dependency stuff
-        LinkedList<Point> dependencies;
-        LinkedList<PlayerMove> validMoves;
-        boolean valid = false;
+        List<Point> dependencies;
+        List<PlayerMove> validMoves;
+        bool valid = false;
         int c = 0;
 
         //TODO MoveRange
         //TODO Bodyguard
 
-        public Piece(String name, int image, int value, LinkedList<Move> moveList) {
-            this(name, image, value, moveList, false);
-        }
+        public Piece(string name, int image, int value, List<Move> moveList) : this(name, image, value, moveList, false) { }
 
-        public Piece(String name, int image, int value, LinkedList<Move> moveList, boolean royalty) {
+        public Piece(string name, int image, int value, List<Move> moveList, bool royalty) {
             this.image = image;
             this.name = name;
             this.value = value;
             this.moveList = moveList;
             this.royalty = royalty;
-            if (name.equals("Z")) stunner = true;
+            if (name.Equals("Z")) stunner = true;
         }
 
-        public Piece(char color, String name, int image, int value, Board board, int x, int y, LinkedList<Move> moveList) {
-            this(color, name, image, value, board, x, y, moveList, false);
-        }
+        public Piece(char color, string name, int image, int value, Board board, int x, int y, List<Move> moveList) :
+            this(color, name, image, value, board, x, y, moveList, false) { }
+      
 
-        public Piece(char color, String name, int image, int value, Board board, int x, int y, LinkedList<Move> moveList, boolean royalty) {
-            this(name, image, value, moveList);
+        public Piece(char color, string name, int image, int value, Board board, int x, int y, List<Move> moveList, bool royalty) 
+                    : this(name, image, value, moveList) { 
             this.color = color;
             this.x = x;
             this.y = y;
             this.board = board;
             this.royalty = royalty;
             moved = false;
-            dependencies = new LinkedList<>();
+            dependencies = new List<Point>();
         }
 
-        public Piece(Piece copy, Board b) {
-            this(copy.color, copy.name, copy.image, copy.value, b, copy.x, copy.y, copy.moveList, copy.royalty);
+        public Piece(Piece copy, Board b) :
+                    this(copy.color, copy.name, copy.image, copy.value, b, copy.x, copy.y, copy.moveList, copy.royalty) { 
             this.board = b;
             moved = copy.moved;
             promotion = copy.promotion;
@@ -63,7 +64,7 @@ namespace FantasyChess.Game
                 dependencies = copy.dependencies;
                 validMoves = copy.validMoves;
             }
-            board.addDep(this, c, dependencies);
+            board.AddDep(this, c, dependencies);
         }
 
         public void move(Point p) {
@@ -86,24 +87,24 @@ namespace FantasyChess.Game
             if (promotion == null) return -1;
             int dir = Board.getForwardDirection(color).y;
             if (dir == 1) {
-                return Math.max(board.SIZE - promotion.rows - y, 0);
+                return Math.Max(board.SIZE - promotion.rows - y, 0);
             }
-            return Math.max(y - promotion.rows + 1, 0);
+            return Math.Max(y - promotion.rows + 1, 0);
         }
 
         private double promoValue = -1;
         public double getPromoValue() {
             if (promoValue != -1) return promoValue;
             if (promotion != null) {//TODO do this in the piece move method
-                int diff = promotion.pieces.getFirst().value - value;
-                promoValue = diff / Math.pow(2, distanceToPromotion());
+                int diff = promotion.pieces.First().value - value;
+                promoValue = diff / Math.Pow(2, distanceToPromotion());
             }
             return promoValue;
         }
 
         public int getValue() {
             int v = value;
-            v += getPromoValue();
+            v += (int)getPromoValue(); //TODO we're losing precision with this cast, is that ok??
             if (royalty) v += 1000000;
             //v += getValidMoves().size();//TODO remove duplicates
             return v;
@@ -111,7 +112,7 @@ namespace FantasyChess.Game
 
         public void Promote() {
             if (promotion == null) return;
-            Piece p = promotion.pieces.getFirst();
+            Piece p = promotion.pieces.First();
             name = p.name;
             image = p.image;
             value = p.value;
@@ -119,10 +120,10 @@ namespace FantasyChess.Game
             promotion = p.promotion;
         }
 
-        public boolean inCheck() {
-            for (Piece p : board.getPieces(Board.otherColor(color))) {
-                for (PlayerMove m : p.getValidMoves(false)) {
-                    if (m.captures.contains(this)) {
+        public bool inCheck() {
+            foreach (Piece p in board.getPieces(Board.otherColor(color))) {
+                foreach (PlayerMove m in p.getValidMoves(false)) {
+                    if (m.captures.Contains(this)) {
                         return true;
                     }
                 }
@@ -134,219 +135,217 @@ namespace FantasyChess.Game
             return new Point(x, y);
         }
 
-        public LinkedList<PlayerMove> getValidMoves(boolean check) {
+        public List<PlayerMove> getValidMoves(bool check) {
             if (!valid) Validate();
             if (!check) return validMoves;
-            LinkedList<PlayerMove> stillValid = new LinkedList<>();
-            for (PlayerMove m : validMoves) {
+            List<PlayerMove> stillValid = new List<PlayerMove>();
+            foreach (PlayerMove m in validMoves) {
                 Board test = board.testMove(m);
                 if (!test.inCheck(color))
-                    stillValid.add(m);
+                    stillValid.Add(m);
             }
             return stillValid;
         }
 
         void Validate() {
-            dependencies.clear();
+            dependencies.Clear();
             validMoves = getValidMoves(this, moveList, board, dependencies);
-            board.addDep(this, ++c, dependencies);
+            board.AddDep(this, ++c, dependencies);
             valid = true;
         }
 
-        private static LinkedList<PlayerMove> getValidMoves(Piece piece, LinkedList<Move> moveList, Board board, LinkedList<Point> dependencies) {
-            HashSet<PlayerMove> moves = new HashSet<>();
-            for (Move m : moveList) {
-                moves.addAll(m.getValidMoves(piece, board, dependencies));
+        private static List<PlayerMove> getValidMoves(Piece piece, List<Move> moveList, Board board, List<Point> dependencies) {
+            HashSet<PlayerMove> moves = new HashSet<PlayerMove>();
+            foreach (Move m in moveList) {
+                moves.AddRange(m.getValidMoves(piece, board, dependencies));
             }
-            return new LinkedList<PlayerMove>(moves);
+            return new List<PlayerMove>(moves);
         }
 
         public void invalidate(int i) {
             if (i == c) valid = false;
         }
 
-        public String toString() {
+        public string tostring() {
             return color + "" + name;
         }
 
-        public static LinkedList<Move> getPawnMoves(char color) {
-            LinkedList<Move> moveList = new LinkedList<Move>();
+        public static List<Move> getPawnMoves(char color) {
+            List<Move> moveList = new List<Move>();
 
             Point forward = Board.getForwardDirection(color);
 
-            LinkedList<Point> direction = new LinkedList<>();
-            direction.add(forward);
+            List<Point> direction = new List<Point>();
+            direction.Add(forward);
             Move m = new Move(Move.MoveType.SLIDE, direction, 1);
             m.captureType = Move.CaptureType.MOVEONLY;
-            moveList.add(m);
+            moveList.Add(m);
 
-            direction = new LinkedList<>();
-            direction.add(forward);
+            direction = new List<Point>();
+            direction.Add(forward);
             m = new Move(Move.MoveType.SLIDE, direction, 2);
             m.firstOnly = true;
             m.captureType = Move.CaptureType.MOVEONLY;
             m.relativeGhostLocation = forward;
-            moveList.add(m);
+            moveList.Add(m);
 
-            direction = new LinkedList<>();
-            direction.add(Point.Add(forward, new Point(1, 0)));
-            direction.add(Point.Add(forward, new Point(-1, 0)));
+            direction = new List<Point>();
+            direction.Add(Point.Add(forward, new Point(1, 0)));
+            direction.Add(Point.Add(forward, new Point(-1, 0)));
             m = new Move(Move.MoveType.SLIDE, direction, 1);
             m.captureType = Move.CaptureType.CAPTUREONLY;
             m.ghostEater = true;
-            moveList.add(m);
+            moveList.Add(m);
 
             return moveList;
         }
 
-        public static LinkedList<Move> getKnightMoves() {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getKnightMoves() {
+            List<Move> moveList = new List<Move>();
             Move m = new Move(Move.MoveType.SLIDE, Move.getKnightMoves(1, 2), 1);
-            moveList.add(m);
+            moveList.Add(m);
             return moveList;
         }
 
-        public static LinkedList<Move> getBishopMoves(Board b) {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getBishopMoves(Board b) {
+            List<Move> moveList = new List<Move>();
             Move m = new Move(Move.MoveType.SLIDE, Move.getDiagonal(), b.SIZE);
-            moveList.add(m);
+            moveList.Add(m);
             return moveList;
         }
 
-        public static LinkedList<Move> getRookMoves(Board b) {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getRookMoves(Board b) {
+            List<Move> moveList = new List<Move>();
             Move m = new Move(Move.MoveType.SLIDE, Move.getOrthogonal(), b.SIZE);
-            moveList.add(m);
+            moveList.Add(m);
             return moveList;
         }
 
-        public static LinkedList<Move> getQueenMoves(Board b) {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getQueenMoves(Board b) {
+            List<Move> moveList = new List<Move>();
             Move m = new Move(Move.MoveType.SLIDE, Move.getAllEight(), b.SIZE);
-            moveList.add(m);
+            moveList.Add(m);
             return moveList;
         }
 
-        public static LinkedList<Move> getKingMoves() {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getKingMoves() {
+            List<Move> moveList = new List<Move>();
             Move m = new Move(Move.MoveType.SLIDE, Move.getAllEight(), 1);
-            moveList.add(m);
+            moveList.Add(m);
             return moveList;
         }
 
-        public static LinkedList<Move> getGryphonMoves(Board b) {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getGryphonMoves(Board b) {
+            List<Move> moveList = new List<Move>();
 
             Move m = new Move(Move.MoveType.SLIDE, Move.getDiagonal(), 1);
             Move m2 = new Move(Move.MoveType.SLIDE, Move.getOrthogonal(), b.SIZE);
             TwoPartMove m3 = new TwoPartMove(m, m2, false);
-            moveList.add(m3);
+            moveList.Add(m3);
 
             return moveList;
         }
 
-        public static LinkedList<Move> getAmazonMoves(Board b) {
-            LinkedList<Move> moveList = new LinkedList<>();
-            moveList.addAll(getQueenMoves(b));
-            moveList.addAll(getNightRiderMoves(b));
+        public static List<Move> getAmazonMoves(Board b) {
+            List<Move> moveList = new List<Move>();
+            moveList.AddRange(getQueenMoves(b));
+            moveList.AddRange(getNightRiderMoves(b));
             return moveList;
         }
 
-        public static LinkedList<Move> getPaladinMoves(Board b) {
-            LinkedList<Move> moveList = new LinkedList<>();
-            moveList.addAll(getBishopMoves(b));
-            moveList.add(new Move(Move.MoveType.SLIDE, Move.getKnightMoves(1, 2), b.SIZE));
+        public static List<Move> getPaladinMoves(Board b) {
+            List<Move> moveList = new List<Move>();
+            moveList.AddRange(getBishopMoves(b));
+            moveList.Add(new Move(Move.MoveType.SLIDE, Move.getKnightMoves(1, 2), b.SIZE));
             return moveList;
         }
 
-        public static LinkedList<Move> getNightRiderMoves(Board b) {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getNightRiderMoves(Board b) {
+            List<Move> moveList = new List<Move>();
             Move m = new Move(Move.MoveType.SLIDE, Move.getKnightMoves(1, 2), b.SIZE);
             //m.bounce = true;
-            moveList.add(m);
+            moveList.Add(m);
             return moveList;
         }
 
-        public static LinkedList<Move> getWizardMoves() {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getWizardMoves() {
+            List<Move> moveList = new List<Move>();
             Move m = new Move(Move.MoveType.SLIDE, Move.getKnightMoves(1, 3), 1);
-            moveList.add(m);
+            moveList.Add(m);
             m = new Move(Move.MoveType.SLIDE, Move.getDiagonal(), 1);
-            moveList.add(m);
+            moveList.Add(m);
             return moveList;
         }
 
-        public static LinkedList<Move> getChampionMoves() {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getChampionMoves() {
+            List<Move> moveList = new List<Move>();
             Move m = new Move(Move.MoveType.HOP, Move.Mult(Move.getDiagonal(), 2), 1);
-            moveList.add(m);
+            moveList.Add(m);
             m = new Move(Move.MoveType.HOP, Move.getOrthogonal(), 2);
-            moveList.add(m);
+            moveList.Add(m);
             return moveList;
         }
 
-        public static LinkedList<Move> getBeastMoves() {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getBeastMoves() {
+            List<Move> moveList = new List<Move>();
             Move m = new Move(Move.MoveType.HOP, Move.getKnightMoves(1, 2), 2);
             m.cleave = Move.getAllEight();
-            moveList.add(m);
+            moveList.Add(m);
             Move m2 = new Move(Move.MoveType.HOP, Move.Mult(Move.getOrthogonal(), 4), 1);
             m2.cleave = Move.getAllEight();
-            moveList.add(m2);
+            moveList.Add(m2);
             return moveList;
         }
 
-        public static LinkedList<Move> getCheckerMoves(char color) {
-            LinkedList<Move> moveList = new LinkedList<>();
-            LinkedList<Point> direction = new LinkedList<Point>();
-            direction.add(Point.Add(Board.getForwardDirection(color), new Point(-1, 0)));
-            direction.add(Point.Add(Board.getForwardDirection(color), new Point(1, 0)));
+        public static List<Move> getCheckerMoves(char color) {
+            List<Move> moveList = new List<Move>();
+            List<Point> direction = new List<Point>();
+            direction.Add(Point.Add(Board.getForwardDirection(color), new Point(-1, 0)));
+            direction.Add(Point.Add(Board.getForwardDirection(color), new Point(1, 0)));
             Move m = new Move(Move.MoveType.LOCUST, direction, 2);
             m.captureType = Move.CaptureType.CAPTUREONLY;
-            moveList.add(new InfiniteMove(m, true));
+            moveList.Add(new InfiniteMove(m, true));
 
             Move m2 = new Move(Move.MoveType.SLIDE, direction, 1);
             m2.captureType = Move.CaptureType.MOVEONLY;
-            moveList.add(m2);
+            moveList.Add(m2);
             return moveList;
         }
 
-        public static LinkedList<Move> getPromotedCheckerMoves() {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getPromotedCheckerMoves() {
+            List<Move> moveList = new List<Move>();
             Move m = new Move(Move.MoveType.LOCUST, Move.getDiagonal(), 2);
             m.captureType = Move.CaptureType.CAPTUREONLY;
-            moveList.add(new InfiniteMove(m, true));
+            moveList.Add(new InfiniteMove(m, true));
 
             Move m2 = new Move(Move.MoveType.SLIDE, Move.getDiagonal(), 1);
             m2.captureType = Move.CaptureType.MOVEONLY;
-            moveList.add(m2);
+            moveList.Add(m2);
             return moveList;
         }
 
-        public static LinkedList<Move> getJokerMoves() {
-            LinkedList<Move> moveList = new LinkedList<>();
+        public static List<Move> getJokerMoves() {
+            List<Move> moveList = new List<Move>();
             Move m = new CopyLastMove();
-            moveList.add(m);
+            moveList.Add(m);
             return moveList;
         }
     }
 
-    class Promotion {
-        LinkedList<Piece> pieces;
-        int rows = 1;
-        Promotion(Piece p) {
-            pieces = new LinkedList<>();
-            pieces.add(p);
+    public class Promotion {
+        public List<Piece> pieces;
+        public int rows = 1;
+        public Promotion(Piece p) {
+            pieces = new List<Piece>();
+            pieces.Add(p);
         }
-        Promotion(LinkedList<Piece> pieces) {
+        Promotion(List<Piece> pieces) {
             this.pieces = pieces;
         }
-        Promotion(Piece p, int rows) {
-            this(p);
+        Promotion(Piece p, int rows) : this(p) { 
             this.rows = rows;
         }
-        Promotion(LinkedList<Piece> pieces, int rows) {
-            this(pieces);
+        Promotion(List<Piece> pieces, int rows) : this(pieces) { 
             this.rows = rows;
         }
     }
