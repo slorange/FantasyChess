@@ -15,11 +15,11 @@ namespace FantasyChess.Game
 
         //test board is used by AI to try moves
         //some code isn't executed by test board to speed up AI
-        Piece[][] board;
-        List<Piece> p1captured = new List<Piece>();
-        List<Piece> p2captured = new List<Piece>();
-        List<PlayerMove> valid = new List<PlayerMove>();
-        Piece selectedPiece;
+        public Piece[][] board;
+        public List<Piece> p1captured = new List<Piece>();
+        public List<Piece> p2captured = new List<Piece>();
+        public List<PlayerMove> valid = new List<PlayerMove>();
+        public Piece selectedPiece;
         public Piece lastMoved;
         public Piece lastCopyableMove;
         public Point ghostLocation = null;
