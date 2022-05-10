@@ -1,26 +1,5 @@
-package zeta.chess;
 
-import android.app.Activity;
-import android.graphics.Color;
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.TextView;
-
-
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity : AppCompatActivity, View.OnClickListener {
 
     ChessView chessView;
 
@@ -51,9 +30,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        /*if (id == R.id.action_settings) {
-            return true;
-        }*/
+        //if (id == R.id.action_settings) {
+        //    return true;
+        //}
 
         return super.onOptionsItemSelected(item);
     }
